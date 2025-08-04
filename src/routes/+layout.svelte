@@ -10,11 +10,8 @@
 	let userState = setUserState({ session: data.session, supabase: data.supabase, user: data.user });
 
 	$effect(() => {
-		userState.updateState({ session, supabase, user });
-	});
-
-	$effect(() => {
 		const { data } = supabase.auth.onAuthStateChange((_, newSession) => {
+			userState.updateState({ session: newSession, supabase, user: newSession?.user || null });
 			if (newSession?.expires_at !== session?.expires_at) {
 				invalidate('supabase:auth');
 			}

@@ -22,9 +22,7 @@ export class UserState {
         this.user = data.user;
     }
     async logout() {
-        console.log('you are signing out bro');
         await this.supabase?.auth.signOut();
-        goto('/login');
     }
 }
 

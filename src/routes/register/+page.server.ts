@@ -44,6 +44,8 @@ export const actions = {
             password,
         });
 
+
+
         if (error || !data.user) {
             console.log('There is an Error');
             console.log(error);
@@ -51,9 +53,20 @@ export const actions = {
                 errors,
                 values: { name, email }
             });
-        } else
+        } else {
+            //add the new user to the database
+            const userId = data.user.id;
+            await supabase.from("user_names").insert([
+                {
+                    user_id: userId,
+                    name,
+                },
+            ]);
 
             redirect(303, "/private/dashboard");
+        }
+
+
 
     }
 } satisfies Actions;

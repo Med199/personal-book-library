@@ -4,11 +4,11 @@
 	import { getUserState } from '$components/state/user-state.svelte';
 
 	let userContext = getUserState();
-	let { user } = $derived(userContext);
+	let { user, userName } = $derived(userContext);
 </script>
 
 <header>
-	<a href="/page">
+	<a href="/private/dashboard">
 		<img class="logo" src={HeaderLogo} alt="go to home page" />
 	</a>
 	<nav>
@@ -23,8 +23,8 @@
 			</ul>
 		{:else}
 			<ul>
-				<li>
-					{user.email}
+				<li class="userName">
+					{userName}
 				</li>
 				<li>
 					<Button onclick={() => userContext.logout()} isMenu={true} isSecondary={false}
@@ -41,7 +41,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 12px 4vw;
+		padding: 12px 2.5vw;
 	}
 	ul {
 		display: flex;
@@ -50,5 +50,9 @@
 	}
 	.logo {
 		height: 72px;
+	}
+	.userName {
+		font-size: 30px;
+		font-weight: 500;
 	}
 </style>

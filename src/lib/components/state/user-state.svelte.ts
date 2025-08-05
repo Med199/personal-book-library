@@ -7,10 +7,25 @@ interface UserStateProps {
     supabase: SupabaseClient | null;
     user: User | null;
 }
+export interface Book {
+    author: string | null
+    cover_image: string | null
+    created_at: string
+    description: string | null
+    finished_read_on: string | null
+    genre: string | null
+    id: number
+    rating: number | null
+    started_reading_om: string | null
+    title: string | null
+    user_id: string
+}
 export class UserState {
     session = $state<Session | null>(null);
     supabase = $state<SupabaseClient | null>(null);
     user = $state<User | null>(null);
+    allBooks = $state<Book[]>([]);
+    userName = $state<string | null>(null);
 
     constructor(data: UserStateProps) {
         this.updateState(data);
@@ -20,10 +35,40 @@ export class UserState {
         this.session = data.session;
         this.supabase = data.supabase;
         this.user = data.user;
+        this.fetchUserData();
+    }
+    async fetchUserData() {
+        if (!this.user || !this.supabase) {
+            return;
+        }
+
+        const [booksResponse, userNameResponse] = await Promise.all([
+            this.supabase.from("books").select("*").eq("user_id", this.user.id),
+            this.supabase.from("user_names").select("name").eq("user_id", this.user.id).single()
+        ]);
+        if (booksResponse.error || !booksResponse.data || userNameResponse.error || !userNameResponse.data) {
+            console.log("Error while fetching the user's Data ");
+            console.log(`BooksError:${booksResponse.error}, userName error:${userNameResponse.error}`);
+        } else {
+            this.allBooks = booksResponse.data;
+            this.userName = userNameResponse.data.name;
+        }
+    }
+
+    // Get highest rated books
+    getHighestRatedBooks() {
+        return this.allBooks.filter((book) => book.rating).toSorted((a, z) => z.rating! - a.rating!).slice(0, 5);
     }
     async logout() {
         await this.supabase?.auth.signOut();
+        goto("/login");
     }
+
+    // Get unread books
+    getUnreadBooks() {
+        return this.allBooks.filter((book) => !book.started_reading_om);
+    }
+
 }
 
 // to ensure that we are having the same instance of this 
@@ -37,3 +82,4 @@ export function setUserState(data: UserStateProps) {
 export function getUserState() {
     return getContext<ReturnType<typeof setUserState>>(USER_STATE_KEY);
 }
+

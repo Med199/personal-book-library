@@ -20,6 +20,9 @@ export interface Book {
     title: string | null
     user_id: string
 }
+
+// restrict the book fields that can not be changed 
+type updatabkeBookfields = Omit<Book, "id" | "user_id" | "created_at">;
 export class UserState {
     session = $state<Session | null>(null);
     supabase = $state<SupabaseClient | null>(null);
@@ -59,15 +62,35 @@ export class UserState {
     getHighestRatedBooks() {
         return this.allBooks.filter((book) => book.rating).toSorted((a, z) => z.rating! - a.rating!).slice(0, 5);
     }
+    // Get unread books
+    getUnreadBooks() {
+        return this.allBooks.filter((book) => !book.started_reading_om);
+    }
+    //update the book
+    async updateBook(bookId: number, updateObject: Partial<updatabkeBookfields>) {
+        if (!this.supabase) {
+            return;
+        }
+        const { status, error } = await this.supabase.from('books').update(updateObject).eq('id', bookId);
+        if (status === 204 && !error) {
+            this.allBooks = this.allBooks.map((book) => {
+                if (book.id == bookId) {
+                    return {
+                        ...book,
+                        ...updateObject
+                    }
+                } else {
+                    return book;
+                }
+            })
+        }
+    }
     async logout() {
         await this.supabase?.auth.signOut();
         goto("/login");
     }
 
-    // Get unread books
-    getUnreadBooks() {
-        return this.allBooks.filter((book) => !book.started_reading_om);
-    }
+
 
 }
 

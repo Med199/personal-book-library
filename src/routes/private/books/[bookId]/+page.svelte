@@ -2,6 +2,7 @@
 	import { Button, StarRating } from '$components';
 	import { getUserState, type Book } from '$components/state/user-state.svelte';
 	import Icon from '@iconify/svelte';
+	import Dropzone from 'svelte-file-dropzone';
 	let isEditMode = $state(false);
 	interface BookPageProps {
 		data: {
@@ -21,6 +22,7 @@
 	function goBack() {
 		history.back();
 	}
+
 	// togle to the edit mode or save changes
 	async function toggleEditModeAndSaveChanges() {
 		if (isEditMode) {
@@ -33,6 +35,7 @@
 		}
 		isEditMode = !isEditMode;
 	}
+
 	// update the reading Status
 	async function updateReadingStatus() {
 		const currentDate = new Date().toISOString();
@@ -43,9 +46,20 @@
 			await userContext.updateBook(book.id, { started_reading_om: currentDate });
 		}
 	}
+
 	// update the book's rating
 	async function updateDatabaseRating(newRating: number) {
 		await userContext.updateBook(book.id, { rating: newRating });
+	}
+
+	//handle the drop to upload new books'cover
+	async function handleDrop(e: CustomEvent<any>) {
+		console.log('droped');
+		const { acceptedFiles } = e.detail;
+		if (acceptedFiles.length) {
+			const file = acceptedFiles[0] as File;
+			await userContext.uploadBookCover(file, book.id);
+		}
 	}
 </script>
 
@@ -127,10 +141,16 @@
 			{#if book.cover_image}
 				<img src={book.cover_image} alt="" />
 			{:else}
-				<button class="add-cover">
+				<Dropzone
+					on:drop={handleDrop}
+					multiple={false}
+					accept="image/*"
+					maxSize={5 * 1024 * 1024}
+					containerClasses={'dropzone-cover'}
+				>
 					<Icon icon="bi:camera-fill" width={'40'} />
 					<p>Add book cover</p>
-				</button>
+				</Dropzone>
 			{/if}
 		</div>
 	</div>
@@ -164,13 +184,6 @@
 		height: 100%;
 		border-radius: inherit;
 	}
-
-	.add-cover {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-	}
 	.input {
 		padding: 8px 4px;
 		width: 100%;
@@ -195,5 +208,16 @@
 	}
 	.buttons-container {
 		margin-top: 40px;
+	}
+	:global(.dropzone-cover) {
+		height: 100%;
+		border-radius: 15px !important;
+		display: flex !important;
+		flex-direction: column !important;
+		justify-content: center !important;
+		align-items: center !important;
+		border: unset !important;
+		cursor: pointer;
+		border-style: solid !important;
 	}
 </style>

@@ -61,6 +61,8 @@
 			await userContext.uploadBookCover(file, book.id);
 		}
 	}
+
+	// delete a book
 </script>
 
 {#snippet bookInfo()}
@@ -76,7 +78,7 @@
 		<p class="mb-m">{book.description}</p>
 	{:else}
 		<h4 class="mt-m mb-xs semi-bold">No description yet.</h4>
-		<button class="block mb-m" onclick={() => console.log('toggle on the edit mode')}>
+		<button class="block mb-m" onclick={() => toggleEditModeAndSaveChanges()}>
 			<p>Click to add one.</p>
 		</button>
 	{/if}
@@ -134,7 +136,7 @@
 				<Button isSecondary={true} onclick={() => toggleEditModeAndSaveChanges()}
 					>{isEditMode ? 'Save changes' : 'Edit'}</Button
 				>
-				<Button isDanger={true} onclick={() => console.log('delete')}>Delete book</Button>
+				<Button isDanger={true} onclick={() => userContext.deleteBook(book.id)}>Delete book</Button>
 			</div>
 		</div>
 		<div class="book-cover">

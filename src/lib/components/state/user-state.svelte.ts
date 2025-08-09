@@ -105,6 +105,18 @@ export class UserState {
         this.updateBook(bookId, { cover_image: publicUrl });
 
     }
+    // Delete a book from the library
+    async deleteBook(bookId: number) {
+        console.log("book deleted");
+        if (!this.supabase) {
+            return;
+        }
+        const { error, status } = await this.supabase.from('books').delete().eq("id", bookId);
+        if (!error && status === 204) {
+            this.allBooks = this.allBooks.filter((book) => book.id !== bookId);
+        }
+        goto("/private/dashboard");
+    }
     async logout() {
         await this.supabase?.auth.signOut();
         goto("/login");

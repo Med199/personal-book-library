@@ -20,6 +20,12 @@ export interface Book {
     title: string | null
     user_id: string
 }
+export
+    interface OpenAiBook {
+    author: string;
+    bookTitle: string;
+}
+
 
 // restrict the book fields that can not be changed 
 type updatabkeBookfields = Omit<Book, "id" | "user_id" | "created_at">;
@@ -55,6 +61,28 @@ export class UserState {
         } else {
             this.allBooks = booksResponse.data;
             this.userName = userNameResponse.data.name;
+        }
+    }
+
+    // add Book to library 
+    async addBooksToLibrary(booksToAdd: OpenAiBook[]) {
+        if (!this.supabase || !this.user) {
+            return;
+        }
+
+        const userId = this.user.id;
+
+        const processedBooks = booksToAdd.map((book) => ({
+            title: book.bookTitle,
+            author: book.author,
+            user_id: userId,
+        }));
+
+        const { error } = await this.supabase.from("books").insert(processedBooks);
+        if (error) {
+            throw new Error(error.message);
+        } else {
+            await this.fetchUserData();
         }
     }
 
@@ -117,6 +145,7 @@ export class UserState {
         }
         goto("/private/dashboard");
     }
+
     async logout() {
         await this.supabase?.auth.signOut();
         goto("/login");
